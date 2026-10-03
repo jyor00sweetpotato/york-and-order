@@ -1,8 +1,40 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
+
+/**
+ * Parses a route/query param into a positive integer for database lookups.
+ * Sends a 400 response and returns null when the value is missing or not a
+ * valid integer — this keeps malformed input (e.g. NaN from the frontend)
+ * from ever reaching Postgres, where it would throw and could leak a
+ * pooled connection on the error path.
+ */
+function parseIdParam(
+  req: Request,
+  res: Response,
+  name: string,
+  source: "params" | "query" = "params"
+): number | null {
+  const raw = source === "params" ? req.params[name] : req.query[name];
+  const id = typeof raw === "string" ? Number(raw) : NaN;
+  if (!Number.isInteger(id) || id <= 0) {
+    res.status(400).json({ message: `Invalid ${name}` });
+    return null;
+  }
+  return id;
+}
+
+/** Same as parseIdParam, but the param is optional — only validates when present. */
+function parseOptionalIdParam(
+  req: Request,
+  res: Response,
+  name: string
+): number | undefined | null {
+  if (req.query[name] === undefined) return undefined;
+  return parseIdParam(req, res, name, "query");
+}
 
 export async function registerRoutes(
   httpServer: Server,
@@ -44,7 +76,9 @@ export async function registerRoutes(
   });
 
   app.get(api.todos.get.path, async (req, res) => {
-    const todo = await storage.getTodo(Number(req.params.id));
+    const id = parseIdParam(req, res, 'id');
+    if (id === null) return;
+    const todo = await storage.getTodo(id);
     if (!todo) {
       return res.status(404).json({ message: 'Todo not found' });
     }
@@ -54,7 +88,9 @@ export async function registerRoutes(
   app.patch(api.todos.update.path, async (req, res) => {
     try {
       const input = api.todos.update.input.parse(req.body);
-      const updated = await storage.updateTodo(Number(req.params.id), input);
+      const id = parseIdParam(req, res, 'id');
+      if (id === null) return;
+      const updated = await storage.updateTodo(id, input);
       if (!updated) {
         return res.status(404).json({ message: 'Todo not found' });
       }
@@ -71,7 +107,9 @@ export async function registerRoutes(
   });
 
   app.delete(api.todos.delete.path, async (req, res) => {
-    await storage.deleteTodo(Number(req.params.id));
+    const id = parseIdParam(req, res, 'id');
+    if (id === null) return;
+    await storage.deleteTodo(id);
     res.status(204).send();
   });
 
@@ -100,7 +138,9 @@ export async function registerRoutes(
   });
 
   app.get(api.colleagues.get.path, async (req, res) => {
-    const colleague = await storage.getColleague(Number(req.params.id));
+    const id = parseIdParam(req, res, 'id');
+    if (id === null) return;
+    const colleague = await storage.getColleague(id);
     if (!colleague) {
       return res.status(404).json({ message: 'Colleague not found' });
     }
@@ -110,7 +150,9 @@ export async function registerRoutes(
   app.patch(api.colleagues.update.path, async (req, res) => {
     try {
       const input = api.colleagues.update.input.parse(req.body);
-      const updated = await storage.updateColleague(Number(req.params.id), input);
+      const id = parseIdParam(req, res, 'id');
+      if (id === null) return;
+      const updated = await storage.updateColleague(id, input);
       if (!updated) {
         return res.status(404).json({ message: 'Colleague not found' });
       }
@@ -127,7 +169,9 @@ export async function registerRoutes(
   });
 
   app.delete(api.colleagues.delete.path, async (req, res) => {
-    await storage.deleteColleague(Number(req.params.id));
+    const id = parseIdParam(req, res, 'id');
+    if (id === null) return;
+    await storage.deleteColleague(id);
     res.status(204).send();
   });
 
@@ -135,7 +179,8 @@ export async function registerRoutes(
   // DISCUSSION ITEMS
   // =============================================================================
   app.get(api.discussionItems.list.path, async (req, res) => {
-    const colleagueId = req.query.colleagueId ? Number(req.query.colleagueId) : undefined;
+    const colleagueId = parseOptionalIdParam(req, res, 'colleagueId');
+    if (colleagueId === null) return;
     const status = req.query.status as string | undefined;
     const archived = req.query.archived === 'true' ? true : req.query.archived === 'false' ? false : undefined;
     const items = await storage.getDiscussionItems({ colleagueId, status, archived });
@@ -159,7 +204,9 @@ export async function registerRoutes(
   });
 
   app.get(api.discussionItems.get.path, async (req, res) => {
-    const item = await storage.getDiscussionItem(Number(req.params.id));
+    const id = parseIdParam(req, res, 'id');
+    if (id === null) return;
+    const item = await storage.getDiscussionItem(id);
     if (!item) {
       return res.status(404).json({ message: 'Discussion item not found' });
     }
@@ -169,7 +216,9 @@ export async function registerRoutes(
   app.patch(api.discussionItems.update.path, async (req, res) => {
     try {
       const input = api.discussionItems.update.input.parse(req.body);
-      const updated = await storage.updateDiscussionItem(Number(req.params.id), input);
+      const id = parseIdParam(req, res, 'id');
+      if (id === null) return;
+      const updated = await storage.updateDiscussionItem(id, input);
       if (!updated) {
         return res.status(404).json({ message: 'Discussion item not found' });
       }
@@ -186,7 +235,9 @@ export async function registerRoutes(
   });
 
   app.delete(api.discussionItems.delete.path, async (req, res) => {
-    await storage.deleteDiscussionItem(Number(req.params.id));
+    const id = parseIdParam(req, res, 'id');
+    if (id === null) return;
+    await storage.deleteDiscussionItem(id);
     res.status(204).send();
   });
 
@@ -216,7 +267,9 @@ export async function registerRoutes(
   });
 
   app.delete(api.settings.delete.path, async (req, res) => {
-    await storage.deleteSetting(Number(req.params.id));
+    const id = parseIdParam(req, res, 'id');
+    if (id === null) return;
+    await storage.deleteSetting(id);
     res.status(204).send();
   });
 
@@ -224,10 +277,8 @@ export async function registerRoutes(
   // TASK RELATIONSHIPS
   // =============================================================================
   app.get(api.taskRelationships.list.path, async (req, res) => {
-    const taskId = Number(req.query.taskId);
-    if (!taskId) {
-      return res.status(400).json({ message: 'taskId is required' });
-    }
+    const taskId = parseIdParam(req, res, 'taskId', 'query');
+    if (taskId === null) return;
     const relationships = await storage.getTaskRelationships(taskId);
     res.json(relationships);
   });
@@ -249,7 +300,9 @@ export async function registerRoutes(
   });
 
   app.delete(api.taskRelationships.delete.path, async (req, res) => {
-    await storage.deleteTaskRelationship(Number(req.params.id));
+    const id = parseIdParam(req, res, 'id');
+    if (id === null) return;
+    await storage.deleteTaskRelationship(id);
     res.status(204).send();
   });
 
@@ -257,8 +310,10 @@ export async function registerRoutes(
   // TASK-DISCUSSION LINKS
   // =============================================================================
   app.get(api.taskDiscussionLinks.list.path, async (req, res) => {
-    const taskId = req.query.taskId ? Number(req.query.taskId) : undefined;
-    const discussionItemId = req.query.discussionItemId ? Number(req.query.discussionItemId) : undefined;
+    const taskId = parseOptionalIdParam(req, res, 'taskId');
+    if (taskId === null) return;
+    const discussionItemId = parseOptionalIdParam(req, res, 'discussionItemId');
+    if (discussionItemId === null) return;
     const links = await storage.getTaskDiscussionLinks(taskId, discussionItemId);
     res.json(links);
   });
@@ -280,7 +335,9 @@ export async function registerRoutes(
   });
 
   app.delete(api.taskDiscussionLinks.delete.path, async (req, res) => {
-    await storage.deleteTaskDiscussionLink(Number(req.params.id));
+    const id = parseIdParam(req, res, 'id');
+    if (id === null) return;
+    await storage.deleteTaskDiscussionLink(id);
     res.status(204).send();
   });
 
