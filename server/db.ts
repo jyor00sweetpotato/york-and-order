@@ -17,6 +17,9 @@ export const pool = new Pool({
   max: 10,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
+  // A query stuck on a lock or a runaway scan would otherwise hold its pooled
+  // connection indefinitely; have Postgres cancel it instead.
+  statement_timeout: 15000,
 });
 
 // Idle-client errors would otherwise crash the Node process; log them instead.

@@ -4,6 +4,9 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 
+// IDs are Postgres `serial` (int4) columns.
+const MAX_PG_INT = 2147483647;
+
 /**
  * Parses a route/query param into a positive integer for database lookups.
  * Sends a 400 response and returns null when the value is missing or not a
@@ -18,8 +21,10 @@ function parseIdParam(
   source: "params" | "query" = "params"
 ): number | null {
   const raw = source === "params" ? req.params[name] : req.query[name];
-  const id = typeof raw === "string" ? Number(raw) : NaN;
-  if (!Number.isInteger(id) || id <= 0) {
+  // Plain decimal digits only — Number() alone would accept "1e3", "0x1A",
+  // " 7 ", and values beyond int4 that Postgres would reject with a 500.
+  const id = typeof raw === "string" && /^[1-9]\d*$/.test(raw) ? Number(raw) : NaN;
+  if (!Number.isInteger(id) || id > MAX_PG_INT) {
     res.status(400).json({ message: `Invalid ${name}` });
     return null;
   }
