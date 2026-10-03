@@ -312,9 +312,17 @@ export function buildUrl(path: string, params?: Record<string, string | number>)
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       if (url.includes(`:${key}`)) {
-        url = url.replace(`:${key}`, String(value));
+        // Never build "/api/x/NaN" or "/api/x/undefined" — fail loudly at the
+        // call site instead of sending a request the server must reject.
+        if (key === 'id' && !(Number.isInteger(value) && (value as number) > 0)) {
+          throw new Error(`buildUrl: invalid id ${String(value)} for ${path}`);
+        }
+        url = url.replace(`:${key}`, encodeURIComponent(String(value)));
       }
     });
+  }
+  if (/:\w+/.test(url)) {
+    throw new Error(`buildUrl: missing param in ${url}`);
   }
   return url;
 }
