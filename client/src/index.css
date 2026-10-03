@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Libre+Baskerville:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Clean, Productivity-focused Palette */
+  /* Primary: Deep Indigo */
+  --primary: 226 70% 55%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Background: Slightly off-white for reduced eye strain */
+  --background: 210 20% 98%;
+  --foreground: 222 47% 11%;
+
+  /* Card: Pure white */
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+
+  /* Secondary: Soft Gray/Blue */
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+
+  /* Muted */
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+
+  /* Accents */
+  --accent: 210 40% 96%;
+  --accent-foreground: 222 47% 11%;
+
+  /* Status Colors */
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+  --success: 142 71% 45%;
+
+  /* Popover (dropdown menus, selects) */
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+
+  /* Borders & Inputs */
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 226 70% 55%;
+  
+  --radius: 1rem;
+  
+  /* Fonts */
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Libre Baskerville', Georgia, serif;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    @apply font-bold tracking-tight text-foreground;
+  }
+}
+
+/* Custom Utilities for Polish */
+@layer utilities {
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-lg border border-white/20 shadow-xl shadow-black/5;
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-indigo-600;
+  }
+
+  .hover-lift {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+  }
+}
