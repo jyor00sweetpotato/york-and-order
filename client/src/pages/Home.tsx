@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useTodos, useTasksNeedingReview } from "@/hooks/use-todos";
-import { useTodoCategories, useTodoTypes } from "@/hooks/use-settings";
+import { useTodoCategories } from "@/hooks/use-settings";
 import { CreateTodoDialog } from "@/components/CreateTodoDialog";
 import { TodoCard } from "@/components/TodoCard";
 import { Input } from "@/components/ui/input";
@@ -25,11 +25,9 @@ export default function Home() {
   const { data: todos, isLoading, error } = useTodos({ status: 'pending' });
   const { data: tasksNeedingReview } = useTasksNeedingReview();
   const { data: categories } = useTodoCategories();
-  const { data: types } = useTodoTypes();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState<string>("all");
-  const [filterType, setFilterType] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<string>("urgency-asc");
   
   const taskReviewIds = new Set(tasksNeedingReview?.map(t => t.id) || []);
@@ -70,8 +68,7 @@ export default function Home() {
         todo.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (todo.description && todo.description.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchesCategory = filterCategory === "all" || todo.category === filterCategory;
-      const matchesType = filterType === "all" || todo.type === filterType;
-      return matchesSearch && matchesCategory && matchesType;
+      return matchesSearch && matchesCategory;
     });
   };
 
@@ -80,7 +77,7 @@ export default function Home() {
   const filteredTodos = useMemo(() => {
     if (!todos) return [];
     return filterTasks(todos);
-  }, [todos, searchQuery, filterCategory, filterType]);
+  }, [todos, searchQuery, filterCategory]);
 
   const overdueTodos = useMemo(() => {
     return sortTasks(filteredTodos.filter(todo => 
@@ -99,7 +96,7 @@ export default function Home() {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-display font-bold text-foreground">
-            {greeting()}, let's get things done.
+            {greeting()}
           </h2>
           <p className="text-muted-foreground mt-1 text-lg">
             {format(new Date(), "EEEE, MMMM do")}
@@ -134,18 +131,6 @@ export default function Home() {
             </SelectContent>
           </Select>
 
-          <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger data-testid="select-filter-type" className="w-[140px] rounded-xl">
-              <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
-              <SelectValue placeholder="Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              {types?.map((type) => (
-                <SelectItem key={type.id} value={type.value}>{type.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
 
           <Select value={sortOrder} onValueChange={setSortOrder}>
             <SelectTrigger data-testid="select-sort-order" className="w-[160px] rounded-xl">
@@ -188,7 +173,7 @@ export default function Home() {
             You have no pending tasks. Take a break or create a new one to get started.
           </p>
         </div>
-      ) : filteredTodos.length === 0 && (searchQuery || filterCategory !== "all" || filterType !== "all") ? (
+      ) : filteredTodos.length === 0 && (searchQuery || filterCategory !== "all") ? (
         <div className="flex flex-col items-center justify-center py-20 bg-card/50 rounded-3xl border border-dashed border-border text-center">
           <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
             <Search className="w-8 h-8 text-muted-foreground" />

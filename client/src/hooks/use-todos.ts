@@ -5,7 +5,6 @@ import { checkTaskNeedsReview } from "@shared/deadline-validation";
 
 type TodoFilters = {
   status?: 'pending' | 'completed';
-  type?: 'personal' | 'professional';
   category?: 'ASAP' | 'Today' | 'This Week' | 'Next Week' | 'Eventually' | 'Parking Lot';
 };
 
@@ -17,7 +16,6 @@ export function useTodos(filters?: TodoFilters) {
     queryFn: async () => {
       const url = new URL(api.todos.list.path, window.location.origin);
       if (filters?.status) url.searchParams.append('status', filters.status);
-      if (filters?.type) url.searchParams.append('type', filters.type);
       if (filters?.category) url.searchParams.append('category', filters.category);
       
       const res = await fetch(url.toString(), { credentials: "include" });

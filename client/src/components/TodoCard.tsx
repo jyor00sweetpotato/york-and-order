@@ -5,7 +5,7 @@ import { useUpdateTodo, useDeleteTodo, useTodos } from "@/hooks/use-todos";
 import { useTaskRelationships, useTaskDiscussionLinks } from "@/hooks/use-relationships";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Trash2, Calendar, Clock, Briefcase, User, Link2, ArrowRight, ArrowLeft, MessageSquare, RefreshCw } from "lucide-react";
+import { Trash2, Calendar, Clock, Link2, ArrowRight, ArrowLeft, MessageSquare, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
@@ -41,7 +41,6 @@ export function TodoCard({ todo, needsReview = false }: TodoCardProps) {
     });
   };
 
-  const isProfessional = todo.type === 'professional';
   const catColor = categoryColors[todo.category] || categoryColors["Today"];
 
   const getRelatedTaskName = (taskId: number) => {
@@ -144,13 +143,6 @@ export function TodoCard({ todo, needsReview = false }: TodoCardProps) {
               {todo.category}
             </Badge>
 
-            <Badge variant="outline" className={cn(
-              "rounded-lg px-2 py-1 text-xs font-medium border-0",
-              isProfessional ? "bg-walden-grey-100 text-walden-ink" : "bg-walden-paper text-walden-grey-700"
-            )}>
-              {isProfessional ? <Briefcase className="w-3 h-3 mr-1.5" /> : <User className="w-3 h-3 mr-1.5" />}
-              {todo.type === 'personal' ? 'Personal' : 'Professional'}
-            </Badge>
 
             {impactLabel(todo.strategicImpact) && (
               <Badge variant="outline" className="rounded-lg px-2 py-1 text-xs font-medium border-walden-ink text-walden-ink" data-testid={`badge-impact-${todo.id}`}>

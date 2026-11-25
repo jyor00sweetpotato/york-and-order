@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -21,7 +21,7 @@ function Router() {
       
       <main className="flex-1 overflow-auto h-screen relative">
         <div className="md:hidden p-4 flex items-center justify-between gap-2 border-b bg-card sticky top-0 z-50">
-          <span className="font-bold text-xl text-primary font-display">York & Order</span>
+          <span className="text-xl text-foreground font-display">Joe's List</span>
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" data-testid="button-mobile-menu">
@@ -36,7 +36,8 @@ function Router() {
 
         <Switch>
           <Route path="/" component={Home} />
-          <Route path="/type/:type" component={CategoryView} />
+          {/* Task types were removed; send old /type/... bookmarks home */}
+          <Route path="/type/:type"><Redirect to="/" /></Route>
           <Route path="/category/:category" component={CategoryView} />
           <Route path="/completed" component={CompletedView} />
           <Route path="/reports" component={ReportsView} />

@@ -55,9 +55,6 @@ export function useTodoCategories() {
   return useSettings('todo_category');
 }
 
-export function useTodoTypes() {
-  return useSettings('todo_type');
-}
 
 export function useDiscussionStatuses() {
   return useSettings('discussion_status');

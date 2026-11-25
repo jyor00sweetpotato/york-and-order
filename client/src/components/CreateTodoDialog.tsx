@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateTodo } from "@/hooks/use-todos";
-import { useTodoCategories, useTodoTypes } from "@/hooks/use-settings";
+import { useTodoCategories } from "@/hooks/use-settings";
 import { useCreateTaskRelationship, useCreateTaskDiscussionLink } from "@/hooks/use-relationships";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -47,14 +47,13 @@ export function CreateTodoDialog() {
   const createRelationship = useCreateTaskRelationship();
   const createDiscussionLink = useCreateTaskDiscussionLink();
   const { data: categories } = useTodoCategories();
-  const { data: types } = useTodoTypes();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       description: "",
-      type: "personal",
+      type: "professional",
       category: "Today",
       strategicImpact: null,
       estimatedHours: null,
@@ -157,32 +156,7 @@ export function CreateTodoDialog() {
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-semibold">Type</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger data-testid="select-type" className="rounded-xl bg-secondary border-transparent focus:border-primary/20 focus:bg-white transition-all">
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="rounded-xl shadow-xl border-border/50">
-                        {types?.map((type) => (
-                          <SelectItem key={type.id} value={type.value}>
-                            <span className={colorClasses[type.color || 'gray']}>{type.label}</span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
+            <div>
               <FormField
                 control={form.control}
                 name="category"

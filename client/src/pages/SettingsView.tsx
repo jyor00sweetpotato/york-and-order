@@ -279,12 +279,6 @@ export default function SettingsView() {
             description="Priority levels for organizing your tasks"
             icon={Tag}
           />
-          <SettingsList 
-            group="todo_type"
-            title="Task Types"
-            description="Personal or professional task classification"
-            icon={Tag}
-          />
         </TabsContent>
 
         <TabsContent value="discussions" className="space-y-6">

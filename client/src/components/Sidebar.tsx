@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, CheckSquare, Briefcase, User, PieChart, Zap, Calendar, CalendarDays, CalendarRange, Clock, Inbox, Users, Settings } from "lucide-react";
+import { LayoutDashboard, CheckSquare, PieChart, Zap, Calendar, CalendarDays, CalendarRange, Clock, Inbox, Users, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useTodoCategories, useTodoTypes } from "@/hooks/use-settings";
+import { useTodoCategories } from "@/hooks/use-settings";
 
 const mainLinks = [
   { href: "/", label: "To Do List", icon: LayoutDashboard },
@@ -33,11 +33,6 @@ const categoryColors: Record<string, string> = {
   "green": "text-walden-ink",
 };
 
-const typeIcons: Record<string, any> = {
-  "personal": User,
-  "professional": Briefcase,
-};
-
 interface SidebarProps {
   isMobile?: boolean;
 }
@@ -45,7 +40,6 @@ interface SidebarProps {
 export function Sidebar({ isMobile = false }: SidebarProps) {
   const [location] = useLocation();
   const { data: categories } = useTodoCategories();
-  const { data: types } = useTodoTypes();
 
   const renderLink = (link: { href: string; label: string; icon: any; color?: string }) => {
     const Icon = link.icon;
@@ -74,7 +68,7 @@ export function Sidebar({ isMobile = false }: SidebarProps) {
     )}>
       <div className="p-6 pb-4">
         <h1 className="text-2xl font-display text-foreground">
-          York & Order
+          Joe's List
         </h1>
         <p className="text-sm text-muted-foreground mt-1">Life, organized.</p>
       </div>
@@ -82,22 +76,6 @@ export function Sidebar({ isMobile = false }: SidebarProps) {
       <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
         <div className="space-y-1">
           {mainLinks.map(renderLink)}
-        </div>
-
-        <div className="pt-4">
-          <p className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Type</p>
-          <div className="space-y-1">
-            {types?.map((type) => {
-              const Icon = typeIcons[type.value] || User;
-              const colorClass = categoryColors[type.color || 'gray'];
-              return renderLink({
-                href: `/type/${type.value}`,
-                label: type.label,
-                icon: Icon,
-                color: colorClass,
-              });
-            })}
-          </div>
         </div>
 
         <div className="pt-4">

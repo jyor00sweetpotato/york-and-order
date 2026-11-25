@@ -14,7 +14,7 @@ export const todos = pgTable("todos", {
   title: text("title").notNull(),
   description: text("description"),
   category: text("category").notNull().default("Today"),
-  type: text("type").notNull().default("personal"),
+  type: text("type").notNull().default("professional"), // personal tasks were removed; only "professional" remains
   deadline: timestamp("deadline"),
   isCompleted: boolean("is_completed").default(false).notNull(),
   completedAt: timestamp("completed_at"),
@@ -28,6 +28,7 @@ export const insertTodoSchema = createInsertSchema(todos, {
   deadline: z.union([z.string(), z.date()]).optional().transform(val => 
     val ? (typeof val === 'string' ? new Date(val) : val) : undefined
   ),
+  type: z.literal("professional").optional(),
   strategicImpact: z.enum(STRATEGIC_IMPACTS).nullable().optional(),
   estimatedHours: z.number()
     .positive("Estimated hours must be greater than 0")

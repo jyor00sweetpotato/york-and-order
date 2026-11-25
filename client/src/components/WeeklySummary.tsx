@@ -53,13 +53,13 @@ function signed(n: number) {
   return `${v >= 0 ? "+" : "−"}${Math.abs(v)}`;
 }
 
-/** Last 7 days of completed professional tasks, by strategic impact. Shown on Charley's 1:1 page. */
+/** Last 7 days of completed tasks, by strategic impact. Shown on Charley's 1:1 page. */
 export function WeeklySummary() {
   // Days are the viewer's local calendar days; the server only filters by instant.
   const today = startOfDay(new Date());
   const dayKey = today.getTime();
   const range = useMemo(
-    () => ({ from: subDays(today, 13), to: addDays(today, 1), type: "professional" }),
+    () => ({ from: subDays(today, 13), to: addDays(today, 1) }),
     [dayKey],
   );
   const { data: completed, isLoading, error } = useCompletedTodos(range);
@@ -109,7 +109,7 @@ export function WeeklySummary() {
       <div className="space-y-3">
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.1em] text-muted-foreground">
-            Last 7 days · {format(weekStart, "MMM d")} – {format(today, "MMM d")} · Professional
+            Last 7 days · {format(weekStart, "MMM d")} – {format(today, "MMM d")}
           </p>
           <h3 className="text-lg font-display mt-1">What I got done</h3>
         </div>
@@ -223,7 +223,7 @@ export function WeeklySummary() {
 
           {selectedDay.todos.length === 0 ? (
             <p className="text-sm text-muted-foreground border border-dashed border-border p-4 text-center">
-              No professional tasks completed on {format(selectedDay.date, "EEEE, MMM d")}.
+              No tasks completed on {format(selectedDay.date, "EEEE, MMM d")}.
             </p>
           ) : (
             <ul className="divide-y divide-walden-grey-100">
@@ -305,7 +305,7 @@ function Chart({ width, days, measure, selected, today, onSelect, onHover, dayTo
       viewBox={`0 0 ${width} ${H}`}
       className="block max-w-full overflow-visible font-sans tabular-nums"
       role="group"
-      aria-label={`Professional tasks completed per day by strategic impact, ${measure === "count" ? "task count" : "estimated hours"}`}
+      aria-label={`Tasks completed per day by strategic impact, ${measure === "count" ? "task count" : "estimated hours"}`}
     >
       <defs>
         <pattern id={HATCH_ID} width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">

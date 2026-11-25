@@ -4,7 +4,7 @@ import { type Todo, type DiscussionItem, insertTodoSchema } from "@shared/schema
 import { useUpdateTodo, useDeleteTodo, useTodos } from "@/hooks/use-todos";
 import { useTaskRelationships, useTaskDiscussionLinks, useCreateTaskRelationship, useDeleteTaskRelationship, useCreateTaskDiscussionLink, useDeleteTaskDiscussionLink } from "@/hooks/use-relationships";
 import { useColleagues } from "@/hooks/use-colleagues";
-import { useTodoCategories, useTodoTypes } from "@/hooks/use-settings";
+import { useTodoCategories } from "@/hooks/use-settings";
 import { useQuery } from "@tanstack/react-query";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,7 +23,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Trash2, Calendar as CalendarIcon, Clock, Briefcase, User, Link2, ArrowRight, ArrowLeft, MessageSquare, AlertTriangle, CheckCircle2, Pencil, X } from "lucide-react";
+import { Trash2, Calendar as CalendarIcon, Clock, Link2, ArrowRight, ArrowLeft, MessageSquare, AlertTriangle, CheckCircle2, Pencil, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -77,7 +77,6 @@ export function TaskDetailDialog({ todo, open, onOpenChange }: TaskDetailDialogP
   const { data: colleagues } = useColleagues();
   const { data: discussionItems } = useQuery<DiscussionItem[]>({ queryKey: ['/api/discussion-items'] });
   const { data: categories } = useTodoCategories();
-  const { data: types } = useTodoTypes();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -85,7 +84,6 @@ export function TaskDetailDialog({ todo, open, onOpenChange }: TaskDetailDialogP
       title: todo.title,
       description: todo.description || "",
       category: todo.category,
-      type: todo.type,
       deadline: todo.deadline ? new Date(todo.deadline) : undefined,
       strategicImpact: todo.strategicImpact as FormData["strategicImpact"],
       estimatedHours: todo.estimatedHours,
@@ -102,8 +100,7 @@ export function TaskDetailDialog({ todo, open, onOpenChange }: TaskDetailDialogP
         title: todo.title,
         description: todo.description || "",
         category: todo.category,
-        type: todo.type,
-        deadline: todo.deadline ? new Date(todo.deadline) : undefined,
+          deadline: todo.deadline ? new Date(todo.deadline) : undefined,
         strategicImpact: todo.strategicImpact as FormData["strategicImpact"],
         estimatedHours: todo.estimatedHours,
       });
@@ -115,7 +112,6 @@ export function TaskDetailDialog({ todo, open, onOpenChange }: TaskDetailDialogP
     }
   }, [open, todo, form]);
 
-  const isProfessional = todo.type === 'professional';
   const catColor = categoryColors[todo.category] || categoryColors["Today"];
   const isOverdue = todo.deadline && new Date(todo.deadline) < new Date() && !todo.isCompleted;
 
@@ -148,7 +144,6 @@ export function TaskDetailDialog({ todo, open, onOpenChange }: TaskDetailDialogP
         title: data.title,
         description: data.description,
         category: data.category,
-        type: data.type,
         strategicImpact: data.strategicImpact ?? null,
         estimatedHours: data.estimatedHours ?? null,
         deadline: data.deadline || undefined,
@@ -203,7 +198,6 @@ export function TaskDetailDialog({ todo, open, onOpenChange }: TaskDetailDialogP
       title: todo.title,
       description: todo.description || "",
       category: todo.category,
-      type: todo.type,
       deadline: todo.deadline ? new Date(todo.deadline) : undefined,
       strategicImpact: todo.strategicImpact as FormData["strategicImpact"],
       estimatedHours: todo.estimatedHours,
@@ -377,32 +371,7 @@ export function TaskDetailDialog({ todo, open, onOpenChange }: TaskDetailDialogP
                 )}
               />
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-semibold">Type</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-edit-type" className="rounded-xl bg-secondary border-transparent focus:border-primary/20 focus:bg-white transition-all">
-                            <SelectValue placeholder="Select type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="rounded-xl shadow-xl border-border/50">
-                          {types?.map((type) => (
-                            <SelectItem key={type.id} value={type.value}>
-                              <span className={colorClasses[type.color || 'gray']}>{type.label}</span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
+              <div>
                 <FormField
                   control={form.control}
                   name="category"
@@ -525,13 +494,6 @@ export function TaskDetailDialog({ todo, open, onOpenChange }: TaskDetailDialogP
                 {todo.category}
               </Badge>
 
-              <Badge variant="outline" className={cn(
-                "rounded-lg px-3 py-1.5 text-sm font-medium border-0",
-                isProfessional ? "bg-walden-grey-100 text-walden-ink" : "bg-walden-paper text-walden-grey-700"
-              )}>
-                {isProfessional ? <Briefcase className="w-3.5 h-3.5 mr-1.5" /> : <User className="w-3.5 h-3.5 mr-1.5" />}
-                {todo.type === 'personal' ? 'Personal' : 'Professional'}
-              </Badge>
 
               {todo.isCompleted && (
                 <Badge variant="secondary" className="text-sm bg-walden-grey-100 text-walden-ink">

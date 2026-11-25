@@ -390,7 +390,6 @@ async function seedDatabase() {
 
     // Todo types
     const types = [
-      { group: 'todo_type', value: 'personal', label: 'Personal', color: 'purple' },
       { group: 'todo_type', value: 'professional', label: 'Professional', color: 'blue' },
     ];
     for (const type of types) {
@@ -419,9 +418,9 @@ async function seedDatabase() {
       deadline: new Date(Date.now() + 86400000 * 2)
     });
     await storage.createTodo({
-      title: "Buy groceries",
-      description: "Milk, eggs, bread, and coffee.",
-      type: "personal",
+      title: "Prepare weekly status update",
+      description: "Wins, risks, and asks for the week.",
+      type: "professional",
       category: "ASAP",
       isCompleted: false,
       deadline: new Date(Date.now() + 86400000)
@@ -434,16 +433,16 @@ async function seedDatabase() {
       isCompleted: true,
     });
     await storage.createTodo({
-      title: "Gym session",
-      description: "Leg day.",
-      type: "personal",
+      title: "Book Q1 planning session",
+      description: "Find a two-hour slot with the leadership team.",
+      type: "professional",
       category: "Today",
       isCompleted: true,
     });
     await storage.createTodo({
-      title: "Learn a new programming language",
-      description: "Maybe Rust or Go?",
-      type: "personal",
+      title: "Draft team training plan",
+      description: "Topics and owners for next quarter.",
+      type: "professional",
       category: "Parking Lot",
       isCompleted: false,
     });
