@@ -7,11 +7,20 @@ import {
   taskDiscussionLinks, type TaskDiscussionLink, type InsertTaskDiscussionLink
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, ne, or } from "drizzle-orm";
+import { eq, desc, and, ne, or, gte, lt, isNull } from "drizzle-orm";
+import { slugify, uniqueSlug } from "@shared/slug";
+
+export type TodoFilters = {
+  status?: 'pending' | 'completed';
+  type?: string;
+  category?: string;
+  completedFrom?: Date;
+  completedTo?: Date;
+};
 
 export interface IStorage {
   // Todos
-  getTodos(filters?: { status?: 'pending' | 'completed', type?: string, category?: string }): Promise<Todo[]>;
+  getTodos(filters?: TodoFilters): Promise<Todo[]>;
   getTodo(id: number): Promise<Todo | undefined>;
   createTodo(todo: CreateTodoRequest): Promise<Todo>;
   updateTodo(id: number, updates: UpdateTodoRequest): Promise<Todo | undefined>;
@@ -24,6 +33,7 @@ export interface IStorage {
   createColleague(colleague: InsertColleague): Promise<Colleague>;
   updateColleague(id: number, updates: Partial<InsertColleague>): Promise<Colleague | undefined>;
   deleteColleague(id: number): Promise<void>;
+  backfillColleagueSlugs(): Promise<void>;
 
   // Discussion Items
   getDiscussionItems(filters?: { colleagueId?: number, status?: string, archived?: boolean }): Promise<DiscussionItem[]>;
@@ -52,7 +62,7 @@ export class DatabaseStorage implements IStorage {
   // =============================================================================
   // TODOS
   // =============================================================================
-  async getTodos(filters?: { status?: 'pending' | 'completed', type?: string, category?: string }): Promise<Todo[]> {
+  async getTodos(filters?: TodoFilters): Promise<Todo[]> {
     let conditions = [];
     if (filters?.status === 'completed') {
       conditions.push(eq(todos.isCompleted, true));
@@ -66,6 +76,14 @@ export class DatabaseStorage implements IStorage {
 
     if (filters?.category) {
       conditions.push(eq(todos.category, filters.category));
+    }
+
+    if (filters?.completedFrom) {
+      conditions.push(gte(todos.completedAt, filters.completedFrom));
+    }
+
+    if (filters?.completedTo) {
+      conditions.push(lt(todos.completedAt, filters.completedTo));
     }
 
     if (conditions.length > 0) {
@@ -180,8 +198,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createColleague(insertColleague: InsertColleague): Promise<Colleague> {
-    const [colleague] = await db.insert(colleagues).values(insertColleague).returning();
+    const slug = uniqueSlug(slugify(insertColleague.name), await this.takenSlugs());
+    const [colleague] = await db.insert(colleagues).values({ ...insertColleague, slug }).returning();
     return colleague;
+  }
+
+  /** Gives every colleague created before slugs existed a URL slug, oldest first. */
+  async backfillColleagueSlugs(): Promise<void> {
+    const missing = await db.select().from(colleagues).where(isNull(colleagues.slug)).orderBy(colleagues.id);
+    if (missing.length === 0) return;
+    const taken = await this.takenSlugs();
+    for (const c of missing) {
+      const slug = uniqueSlug(slugify(c.name), taken);
+      taken.add(slug);
+      await db.update(colleagues).set({ slug }).where(eq(colleagues.id, c.id));
+    }
+  }
+
+  private async takenSlugs(): Promise<Set<string>> {
+    const rows = await db.select({ slug: colleagues.slug }).from(colleagues);
+    return new Set(rows.map(r => r.slug).filter((s): s is string => !!s));
   }
 
   async updateColleague(id: number, updates: Partial<InsertColleague>): Promise<Colleague | undefined> {

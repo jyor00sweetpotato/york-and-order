@@ -24,13 +24,13 @@ const categoryIcons: Record<string, any> = {
 };
 
 const categoryColors: Record<string, string> = {
-  "red": "text-red-500",
-  "orange": "text-orange-500",
-  "yellow": "text-yellow-600",
-  "blue": "text-blue-500",
-  "purple": "text-purple-500",
-  "gray": "text-gray-500",
-  "green": "text-green-500",
+  "red": "text-walden-rust",
+  "orange": "text-walden-ink",
+  "yellow": "text-walden-ink",
+  "blue": "text-walden-ink",
+  "purple": "text-walden-grey-700",
+  "gray": "text-walden-grey-700",
+  "green": "text-walden-ink",
 };
 
 const typeIcons: Record<string, any> = {
@@ -49,18 +49,18 @@ export function Sidebar({ isMobile = false }: SidebarProps) {
 
   const renderLink = (link: { href: string; label: string; icon: any; color?: string }) => {
     const Icon = link.icon;
-    const isActive = location === link.href;
+    const isActive = location === link.href || (link.href !== "/" && location.startsWith(link.href + "/"));
     
     return (
       <Link key={link.href} href={link.href} data-testid={`link-${link.label.toLowerCase().replace(/\s+/g, '-')}`} className={cn(
-        "flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 group font-medium text-sm",
-        isActive 
-          ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25" 
-          : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+        "flex items-center gap-3 px-4 py-2.5 border-l-4 transition-all duration-200 group font-medium text-sm",
+        isActive
+          ? "border-walden-sun bg-walden-paper text-foreground"
+          : "border-transparent text-muted-foreground hover:bg-walden-sun-wash hover:text-foreground"
       )}>
         <Icon className={cn(
           "w-4 h-4", 
-          isActive ? "text-primary-foreground" : link.color || "text-muted-foreground group-hover:text-foreground"
+          isActive ? "text-foreground" : link.color || "text-muted-foreground group-hover:text-foreground"
         )} />
         {link.label}
       </Link>
@@ -73,7 +73,7 @@ export function Sidebar({ isMobile = false }: SidebarProps) {
       !isMobile && "hidden md:flex"
     )}>
       <div className="p-6 pb-4">
-        <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-700">
+        <h1 className="text-2xl font-display text-foreground">
           York & Order
         </h1>
         <p className="text-sm text-muted-foreground mt-1">Life, organized.</p>
@@ -125,8 +125,8 @@ export function Sidebar({ isMobile = false }: SidebarProps) {
       </nav>
 
       <div className="p-4 border-t border-border">
-        <div className="bg-gradient-to-br from-primary/10 to-blue-500/10 rounded-xl p-3 border border-primary/10">
-          <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-1">Pro Tip</p>
+        <div className="p-3 border-l-4 border-walden-sun bg-walden-paper">
+          <p className="text-xs font-semibold text-foreground uppercase tracking-wider mb-1">Pro Tip</p>
           <p className="text-xs text-muted-foreground leading-relaxed">
             Use Settings to customize categories and manage your colleagues.
           </p>

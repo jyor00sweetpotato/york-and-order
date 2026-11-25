@@ -1,54 +1,55 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Libre+Baskerville:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  /* Clean, Productivity-focused Palette */
-  /* Primary: Deep Indigo */
-  --primary: 226 70% 55%;
-  --primary-foreground: 0 0% 100%;
+  /* Walden Mutual palette (waldenmutual.com): eggshell ground, near-black ink,
+     sunflower-yellow accent, warm greys. Rust is reserved for problems. */
+  --background: 0 0% 97%;            /* eggshell #f7f7f7 */
+  --foreground: 345 6% 13%;          /* ink #231f20 */
 
-  /* Background: Slightly off-white for reduced eye strain */
-  --background: 210 20% 98%;
-  --foreground: 222 47% 11%;
-
-  /* Card: Pure white */
   --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
+  --card-foreground: 345 6% 13%;
+  --card-border: 36 21% 82%;
 
-  /* Secondary: Soft Gray/Blue */
-  --secondary: 210 40% 96%;
-  --secondary-foreground: 222 47% 11%;
+  --primary: 345 6% 13%;             /* black buttons, like the site */
+  --primary-foreground: 0 0% 97%;
+  --primary-border: hsl(345 6% 13%);
 
-  /* Muted */
-  --muted: 210 40% 96%;
-  --muted-foreground: 215 16% 47%;
+  --secondary: 0 0% 92%;             /* light grey #ebebeb */
+  --secondary-foreground: 345 6% 13%;
+  --secondary-border: hsl(0 0% 92%);
 
-  /* Accents */
-  --accent: 210 40% 96%;
-  --accent-foreground: 222 47% 11%;
+  --muted: 30 10% 94%;
+  --muted-foreground: 345 3% 41%;    /* #6b6566 */
+  --muted-border: hsl(36 21% 82%);
 
-  /* Status Colors */
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 210 40% 98%;
-  --success: 142 71% 45%;
+  /* Hover / highlighted rows: a wash of sunflower yellow */
+  --accent: 48 100% 89%;             /* #fff4c7 */
+  --accent-foreground: 345 6% 13%;
+  --accent-border: hsl(48 100% 52%);
 
-  /* Popover (dropdown menus, selects) */
+  --destructive: 13 46% 34%;         /* rustique #7e402f */
+  --destructive-foreground: 0 0% 97%;
+  --destructive-border: hsl(13 46% 34%);
+  --success: 345 6% 13%;
+
   --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
+  --popover-foreground: 345 6% 13%;
+  --popover-border: 36 21% 82%;
 
-  /* Borders & Inputs */
-  --border: 214 32% 91%;
-  --input: 214 32% 91%;
-  --ring: 226 70% 55%;
-  
-  --radius: 1rem;
-  
-  /* Fonts */
-  --font-sans: 'Inter', sans-serif;
-  --font-display: 'Libre Baskerville', Georgia, serif;
+  --border: 36 21% 82%;              /* edgecomb gray #dbd2c5 */
+  --input: 36 21% 82%;
+  --ring: 345 6% 13%;
+  --button-outline: hsl(345 6% 13%);
+
+  --radius: 0.125rem;
+
+  --font-sans: 'Jost', 'Brandon Grotesque', 'Futura', 'Century Gothic', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Libre Caslon Text', 'Adobe Caslon Pro', Georgia, 'Times New Roman', serif;
+  --font-serif: 'Libre Caslon Text', 'Adobe Caslon Pro', Georgia, 'Times New Roman', serif;
 }
 
 @layer base {
@@ -61,8 +62,16 @@
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    @apply font-bold tracking-tight text-foreground;
+    @apply font-normal text-foreground;
   }
+}
+
+@layer components {
+  /* Caslon headings are set at regular weight on the Walden site; this beats the
+     font-bold utilities pages pair with font-display. */
+  .font-display.font-bold, .font-display.font-semibold { font-weight: 400; }
+  /* Small uppercase labels use the sans, as Brandon Grotesque does on the site. */
+  :is(h1, h2, h3, h4, h5, h6).uppercase { font-family: var(--font-sans); letter-spacing: 0.1em; }
 }
 
 /* Custom Utilities for Polish */
@@ -72,7 +81,7 @@
   }
   
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-indigo-600;
+    @apply text-foreground;
   }
 
   .hover-lift {

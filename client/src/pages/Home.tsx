@@ -202,7 +202,7 @@ export default function Home() {
         <>
           {tasksNeedingReview && tasksNeedingReview.length > 0 && (
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-2" data-testid="section-tasks-to-review">
+              <h3 className="text-sm font-semibold text-walden-ink uppercase tracking-wider flex items-center gap-2" data-testid="section-tasks-to-review">
                 <RefreshCw className="w-4 h-4" />
                 Tasks To Review ({tasksNeedingReview.length})
               </h3>
@@ -221,7 +221,7 @@ export default function Home() {
 
           {overdueTodos.length > 0 && (
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-red-600 uppercase tracking-wider flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-walden-rust uppercase tracking-wider flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4" />
                 Overdue Tasks ({overdueTodos.length})
               </h3>

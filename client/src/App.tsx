@@ -41,6 +41,7 @@ function Router() {
           <Route path="/completed" component={CompletedView} />
           <Route path="/reports" component={ReportsView} />
           <Route path="/one-on-ones" component={OneOnOnesView} />
+          <Route path="/one-on-ones/:slug" component={OneOnOnesView} />
           <Route path="/settings" component={SettingsView} />
           <Route component={NotFound} />
         </Switch>

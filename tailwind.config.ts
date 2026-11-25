@@ -5,12 +5,30 @@ export default {
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      // Walden: near-square corners everywhere, including the rounded-xl/2xl/3xl used across pages.
       borderRadius: {
-        lg: ".5625rem", /* 9px */
-        md: ".375rem", /* 6px */
-        sm: ".1875rem", /* 3px */
+        "3xl": "6px",
+        "2xl": "4px",
+        xl: "4px",
+        lg: "3px",
+        md: "2px",
+        sm: "2px",
       },
       colors: {
+        // Walden Mutual brand palette (from waldenmutual.com)
+        walden: {
+          ink: "#231f20",
+          paper: "#f7f7f7",
+          sun: "#ffcf0b",
+          "sun-wash": "#fff4c7",
+          rust: "#7e402f",
+          "rust-wash": "#f4e7e2",
+          line: "#dbd2c5",
+          "grey-100": "#ebebeb",
+          "grey-400": "#a59f9e",
+          "grey-500": "#969292",
+          "grey-700": "#6b6566",
+        },
         // Flat / base colors (regular buttons)
         background: "hsl(var(--background) / <alpha-value>)",
         foreground: "hsl(var(--foreground) / <alpha-value>)",

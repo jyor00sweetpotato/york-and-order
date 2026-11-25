@@ -7,4 +7,5 @@ vite.config.ts.*
 .cache
 .agents
 .upm
-.replit
+.replitdist.next
+dist.prev

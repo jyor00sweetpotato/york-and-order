@@ -9,6 +9,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { TaskSizingFields } from "./TaskSizingFields";
+import { impactLabel, formatHours } from "@/lib/task-sizing";
 import { RelationshipSelector, type PendingRelationship, type PendingDiscussionLink } from "./RelationshipSelector";
 import { validateDeadlineForCategory } from "@shared/deadline-validation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -26,22 +28,22 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 const categoryColors: Record<string, { bg: string; text: string }> = {
-  "ASAP": { bg: "bg-red-100 dark:bg-red-900/30", text: "text-red-700 dark:text-red-300" },
-  "Today": { bg: "bg-orange-100 dark:bg-orange-900/30", text: "text-orange-700 dark:text-orange-300" },
-  "This Week": { bg: "bg-yellow-100 dark:bg-yellow-900/30", text: "text-yellow-700 dark:text-yellow-300" },
-  "Next Week": { bg: "bg-blue-100 dark:bg-blue-900/30", text: "text-blue-700 dark:text-blue-300" },
-  "Eventually": { bg: "bg-purple-100 dark:bg-purple-900/30", text: "text-purple-700 dark:text-purple-300" },
-  "Parking Lot": { bg: "bg-gray-100 dark:bg-gray-800", text: "text-gray-700 dark:text-gray-300" },
+  "ASAP": { bg: "bg-walden-rust-wash", text: "text-walden-rust" },
+  "Today": { bg: "bg-walden-sun", text: "text-walden-ink" },
+  "This Week": { bg: "bg-walden-sun-wash", text: "text-walden-ink" },
+  "Next Week": { bg: "bg-walden-line", text: "text-walden-ink" },
+  "Eventually": { bg: "bg-walden-grey-100", text: "text-walden-grey-700" },
+  "Parking Lot": { bg: "bg-card ring-1 ring-inset ring-walden-line", text: "text-walden-grey-700" },
 };
 
 const colorClasses: Record<string, string> = {
-  red: "text-red-600",
-  orange: "text-orange-600",
-  yellow: "text-yellow-600",
-  green: "text-green-600",
-  blue: "text-blue-600",
-  purple: "text-purple-600",
-  gray: "text-gray-600",
+  red: "text-walden-rust",
+  orange: "text-walden-ink",
+  yellow: "text-walden-ink",
+  green: "text-walden-ink",
+  blue: "text-walden-ink",
+  purple: "text-walden-grey-700",
+  gray: "text-walden-grey-700",
 };
 
 const formSchema = insertTodoSchema.extend({
@@ -85,6 +87,8 @@ export function TaskDetailDialog({ todo, open, onOpenChange }: TaskDetailDialogP
       category: todo.category,
       type: todo.type,
       deadline: todo.deadline ? new Date(todo.deadline) : undefined,
+      strategicImpact: todo.strategicImpact as FormData["strategicImpact"],
+      estimatedHours: todo.estimatedHours,
     },
   });
 
@@ -100,6 +104,8 @@ export function TaskDetailDialog({ todo, open, onOpenChange }: TaskDetailDialogP
         category: todo.category,
         type: todo.type,
         deadline: todo.deadline ? new Date(todo.deadline) : undefined,
+        strategicImpact: todo.strategicImpact as FormData["strategicImpact"],
+        estimatedHours: todo.estimatedHours,
       });
       setIsEditing(false);
       setPendingRelationships([]);
@@ -143,6 +149,8 @@ export function TaskDetailDialog({ todo, open, onOpenChange }: TaskDetailDialogP
         description: data.description,
         category: data.category,
         type: data.type,
+        strategicImpact: data.strategicImpact ?? null,
+        estimatedHours: data.estimatedHours ?? null,
         deadline: data.deadline || undefined,
       });
       
@@ -197,6 +205,8 @@ export function TaskDetailDialog({ todo, open, onOpenChange }: TaskDetailDialogP
       category: todo.category,
       type: todo.type,
       deadline: todo.deadline ? new Date(todo.deadline) : undefined,
+      strategicImpact: todo.strategicImpact as FormData["strategicImpact"],
+      estimatedHours: todo.estimatedHours,
     });
     setIsEditing(false);
     setPendingRelationships([]);
@@ -419,6 +429,8 @@ export function TaskDetailDialog({ todo, open, onOpenChange }: TaskDetailDialogP
                 />
               </div>
 
+              <TaskSizingFields control={form.control} />
+
               <FormField
                 control={form.control}
                 name="deadline"
@@ -515,21 +527,34 @@ export function TaskDetailDialog({ todo, open, onOpenChange }: TaskDetailDialogP
 
               <Badge variant="outline" className={cn(
                 "rounded-lg px-3 py-1.5 text-sm font-medium border-0",
-                isProfessional ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300" : "bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"
+                isProfessional ? "bg-walden-grey-100 text-walden-ink" : "bg-walden-paper text-walden-grey-700"
               )}>
                 {isProfessional ? <Briefcase className="w-3.5 h-3.5 mr-1.5" /> : <User className="w-3.5 h-3.5 mr-1.5" />}
                 {todo.type === 'personal' ? 'Personal' : 'Professional'}
               </Badge>
 
               {todo.isCompleted && (
-                <Badge variant="secondary" className="text-sm bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
+                <Badge variant="secondary" className="text-sm bg-walden-grey-100 text-walden-ink">
                   <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
                   Completed
                 </Badge>
               )}
 
+              {impactLabel(todo.strategicImpact) && (
+                <Badge variant="outline" className="rounded-lg px-3 py-1.5 text-sm font-medium border-walden-ink text-walden-ink" data-testid="badge-strategic-impact">
+                  {impactLabel(todo.strategicImpact)} impact
+                </Badge>
+              )}
+
+              {todo.estimatedHours != null && (
+                <Badge variant="outline" className="rounded-lg px-3 py-1.5 text-sm font-medium border-walden-line text-walden-ink" data-testid="badge-estimated-hours">
+                  <Clock className="w-3.5 h-3.5 mr-1.5" />
+                  Est. {formatHours(todo.estimatedHours)}
+                </Badge>
+              )}
+
               {isOverdue && (
-                <Badge variant="secondary" className="text-sm bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
+                <Badge variant="secondary" className="text-sm bg-walden-rust-wash text-walden-rust">
                   <AlertTriangle className="w-3.5 h-3.5 mr-1.5" />
                   Overdue
                 </Badge>
@@ -553,7 +578,7 @@ export function TaskDetailDialog({ todo, open, onOpenChange }: TaskDetailDialogP
                 <div className={cn(
                   "flex items-center gap-2 px-3 py-2 rounded-lg",
                   isOverdue
-                    ? "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-medium" 
+                    ? "bg-walden-rust-wash text-walden-rust font-medium" 
                     : "bg-secondary text-muted-foreground"
                 )}>
                   <CalendarIcon className="w-4 h-4" />
@@ -567,7 +592,7 @@ export function TaskDetailDialog({ todo, open, onOpenChange }: TaskDetailDialogP
               </div>
 
               {todo.completedAt && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-walden-paper text-walden-ink">
                   <CheckCircle2 className="w-4 h-4" />
                   <span>Completed: {format(new Date(todo.completedAt), "MMMM d, yyyy")}</span>
                 </div>
@@ -605,7 +630,7 @@ export function TaskDetailDialog({ todo, open, onOpenChange }: TaskDetailDialogP
             <div className="flex justify-between gap-3 pt-4 border-t">
               <Button
                 variant="ghost"
-                className="text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl"
+                className="text-walden-rust hover:text-walden-rust hover:bg-walden-rust-wash rounded-xl"
                 onClick={handleDelete}
                 data-testid={`button-detail-delete-${todo.id}`}
               >

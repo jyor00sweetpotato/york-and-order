@@ -6,12 +6,12 @@ import { Briefcase, User, Loader2, Zap, Calendar, CalendarDays, CalendarRange, C
 import { motion, AnimatePresence } from "framer-motion";
 
 const categoryConfig: Record<string, { icon: any; color: string; bgColor: string; description: string }> = {
-  "ASAP": { icon: Zap, color: "text-red-600", bgColor: "bg-red-100", description: "Urgent tasks that need immediate attention." },
-  "Today": { icon: Calendar, color: "text-orange-600", bgColor: "bg-orange-100", description: "Tasks to complete by end of day." },
-  "This Week": { icon: CalendarDays, color: "text-yellow-600", bgColor: "bg-yellow-100", description: "Tasks due within the current week." },
-  "Next Week": { icon: CalendarRange, color: "text-blue-600", bgColor: "bg-blue-100", description: "Plan ahead for next week." },
-  "Eventually": { icon: Clock, color: "text-purple-600", bgColor: "bg-purple-100", description: "Low priority tasks with no rush." },
-  "Parking Lot": { icon: Inbox, color: "text-gray-600", bgColor: "bg-gray-100", description: "Ideas and tasks to revisit later." },
+  "ASAP": { icon: Zap, color: "text-walden-rust", bgColor: "bg-walden-rust-wash", description: "Urgent tasks that need immediate attention." },
+  "Today": { icon: Calendar, color: "text-walden-ink", bgColor: "bg-walden-sun", description: "Tasks to complete by end of day." },
+  "This Week": { icon: CalendarDays, color: "text-walden-ink", bgColor: "bg-walden-sun-wash", description: "Tasks due within the current week." },
+  "Next Week": { icon: CalendarRange, color: "text-walden-ink", bgColor: "bg-walden-line", description: "Plan ahead for next week." },
+  "Eventually": { icon: Clock, color: "text-walden-grey-700", bgColor: "bg-walden-grey-100", description: "Low priority tasks with no rush." },
+  "Parking Lot": { icon: Inbox, color: "text-walden-grey-700", bgColor: "bg-walden-grey-100", description: "Ideas and tasks to revisit later." },
 };
 
 export default function CategoryView() {
@@ -93,7 +93,7 @@ export default function CategoryView() {
       <div className="p-6 md:p-10 max-w-5xl mx-auto space-y-8">
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start gap-4">
-            <div className={`p-3 rounded-2xl ${isProfessional ? 'bg-blue-100 text-blue-600' : 'bg-purple-100 text-purple-600'}`}>
+            <div className={`p-3 rounded-2xl ${isProfessional ? 'bg-walden-line text-walden-ink' : 'bg-walden-grey-100 text-walden-grey-700'}`}>
               <Icon className="w-8 h-8" />
             </div>
             <div>
@@ -115,8 +115,8 @@ export default function CategoryView() {
             </div>
           ) : todos?.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 bg-card/50 rounded-3xl border border-dashed border-border text-center">
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${isProfessional ? 'bg-blue-50' : 'bg-purple-50'}`}>
-                <Icon className={`w-8 h-8 ${isProfessional ? 'text-blue-500' : 'text-purple-500'}`} />
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${isProfessional ? 'bg-walden-grey-100' : 'bg-walden-paper'}`}>
+                <Icon className={`w-8 h-8 ${isProfessional ? 'text-walden-ink' : 'text-walden-grey-700'}`} />
               </div>
               <h3 className="text-xl font-bold font-display text-foreground">No tasks here</h3>
               <p className="text-muted-foreground max-w-sm mt-2">

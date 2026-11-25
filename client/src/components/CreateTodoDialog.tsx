@@ -19,6 +19,7 @@ import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { TaskSizingFields } from "./TaskSizingFields";
 import { RelationshipSelector, type PendingRelationship, type PendingDiscussionLink } from "./RelationshipSelector";
 
 const formSchema = insertTodoSchema.extend({
@@ -28,13 +29,13 @@ const formSchema = insertTodoSchema.extend({
 type FormData = z.infer<typeof formSchema>;
 
 const colorClasses: Record<string, string> = {
-  red: "text-red-600",
-  orange: "text-orange-600",
-  yellow: "text-yellow-600",
-  green: "text-green-600",
-  blue: "text-blue-600",
-  purple: "text-purple-600",
-  gray: "text-gray-600",
+  red: "text-walden-rust",
+  orange: "text-walden-ink",
+  yellow: "text-walden-ink",
+  green: "text-walden-ink",
+  blue: "text-walden-ink",
+  purple: "text-walden-grey-700",
+  gray: "text-walden-grey-700",
 };
 
 export function CreateTodoDialog() {
@@ -55,6 +56,8 @@ export function CreateTodoDialog() {
       description: "",
       type: "personal",
       category: "Today",
+      strategicImpact: null,
+      estimatedHours: null,
     },
   });
 
@@ -205,6 +208,8 @@ export function CreateTodoDialog() {
                 )}
               />
             </div>
+
+            <TaskSizingFields control={form.control} />
 
             <FormField
               control={form.control}

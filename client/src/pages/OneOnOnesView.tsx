@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useParams } from "wouter";
 import { useColleagues, useDiscussionItems, useCreateDiscussionItem, useUpdateDiscussionItem, useDeleteDiscussionItem } from "@/hooks/use-colleagues";
 import { useDiscussionStatuses } from "@/hooks/use-settings";
 import { Button } from "@/components/ui/button";
@@ -15,12 +16,16 @@ import { Users, Plus, MessageSquare, Archive, Trash2, Edit2, Loader2, Calendar, 
 import { format, isPast, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { WeeklySummary } from "@/components/WeeklySummary";
 import type { DiscussionItem } from "@shared/schema";
 
+// Only Charley's 1:1 shows the weekly summary of completed professional work.
+const WEEKLY_SUMMARY_SLUG = "charley";
+
 const statusColors: Record<string, { bg: string; text: string }> = {
-  "To Discuss": { bg: "bg-blue-100", text: "text-blue-700" },
-  "Ongoing": { bg: "bg-yellow-100", text: "text-yellow-700" },
-  "Discussed": { bg: "bg-green-100", text: "text-green-700" },
+  "To Discuss": { bg: "bg-walden-sun", text: "text-walden-ink" },
+  "Ongoing": { bg: "bg-card ring-1 ring-inset ring-walden-ink", text: "text-walden-ink" },
+  "Discussed": { bg: "bg-walden-grey-100", text: "text-walden-grey-700" },
 };
 
 function DiscussionItemCard({ item, onUpdate, onDelete }: { 
@@ -59,7 +64,7 @@ function DiscussionItemCard({ item, onUpdate, onDelete }: {
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.2 }}
     >
-      <Card data-testid={`card-discussion-${item.id}`} className={cn("p-4 hover:shadow-lg transition-all", isDueDateOverdue && "border-red-200 bg-red-50/30 dark:border-red-900 dark:bg-red-950/20")}>
+      <Card data-testid={`card-discussion-${item.id}`} className={cn("p-4 hover:shadow-lg transition-all", isDueDateOverdue && "border-walden-rust/40 bg-walden-rust-wash/30")}>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <p className="font-medium text-foreground mb-2">{item.description}</p>
@@ -85,8 +90,8 @@ function DiscussionItemCard({ item, onUpdate, onDelete }: {
                     size="sm" 
                     className={cn(
                       "h-7 text-xs rounded-lg",
-                      isDueDateOverdue && "text-red-600 dark:text-red-400",
-                      isDueDateToday && "text-amber-600 dark:text-amber-400"
+                      isDueDateOverdue && "text-walden-rust",
+                      isDueDateToday && "text-walden-ink"
                     )}
                     data-testid={`button-duedate-${item.id}`}
                   >
@@ -177,7 +182,7 @@ function DiscussionItemCard({ item, onUpdate, onDelete }: {
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-8 w-8 text-muted-foreground hover:text-red-500"
+              className="h-8 w-8 text-muted-foreground hover:text-walden-rust"
               data-testid={`button-delete-discussion-${item.id}`}
               onClick={() => onDelete(item.id)}
             >
@@ -285,19 +290,27 @@ function AddDiscussionItemDialog({ colleagueId, onSuccess }: { colleagueId: numb
 }
 
 export default function OneOnOnesView() {
-  const [selectedColleagueId, setSelectedColleagueId] = useState<number | null>(null);
+  // The colleague comes from the URL: /one-on-ones/:slug
+  const params = useParams<{ slug?: string }>();
+  const [, navigate] = useLocation();
+  const slug = params.slug ? decodeURIComponent(params.slug).toLowerCase() : null;
   const [showArchive, setShowArchive] = useState(false);
   
   const { data: colleagues, isLoading: colleaguesLoading } = useColleagues();
+  const selectedColleague = slug ? colleagues?.find(c => c.slug === slug) : undefined;
+  const selectedColleagueId = selectedColleague?.id ?? null;
   const { data: items, isLoading: itemsLoading } = useDiscussionItems({
     colleagueId: selectedColleagueId || undefined,
     archived: showArchive,
   });
 
+  // Canonical URLs are lowercase: /one-on-ones/Charley -> /one-on-ones/charley
+  useEffect(() => {
+    if (params.slug && slug && params.slug !== slug) navigate(`/one-on-ones/${slug}`, { replace: true });
+  }, [params.slug, slug, navigate]);
+
   const updateItem = useUpdateDiscussionItem();
   const deleteItem = useDeleteDiscussionItem();
-
-  const selectedColleague = colleagues?.find(c => c.id === selectedColleagueId);
 
   const handleUpdate = (id: number, updates: Partial<DiscussionItem>) => {
     updateItem.mutate({ id, ...updates });
@@ -319,7 +332,7 @@ export default function OneOnOnesView() {
     <div className="p-6 md:p-10 max-w-5xl mx-auto space-y-8">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-start gap-4">
-          <div className="p-3 rounded-2xl bg-indigo-100 text-indigo-600">
+          <div className="p-3 rounded-2xl bg-walden-line text-walden-ink">
             <Users className="w-8 h-8" />
           </div>
           <div>
@@ -341,16 +354,21 @@ export default function OneOnOnesView() {
             </Card>
           ) : (
             colleagues?.map((colleague) => (
-              <Button
+              <Link
                 key={colleague.id}
-                variant={selectedColleagueId === colleague.id ? "default" : "ghost"}
-                className="w-full justify-start rounded-xl"
+                href={`/one-on-ones/${colleague.slug}`}
+                aria-current={selectedColleagueId === colleague.id ? "page" : undefined}
+                className={cn(
+                  "flex w-full items-center gap-2 border-l-4 px-3 py-2 text-sm font-medium transition-colors",
+                  selectedColleagueId === colleague.id
+                    ? "border-walden-sun bg-card text-foreground"
+                    : "border-transparent text-muted-foreground hover:bg-walden-sun-wash hover:text-foreground"
+                )}
                 data-testid={`button-colleague-${colleague.id}`}
-                onClick={() => setSelectedColleagueId(colleague.id)}
               >
-                <Users className="w-4 h-4 mr-2" />
+                <Users className="w-4 h-4" />
                 {colleague.name}
-              </Button>
+              </Link>
             ))
           )}
         </div>
@@ -429,7 +447,17 @@ export default function OneOnOnesView() {
                   )}
                 </TabsContent>
               </Tabs>
+
+              {selectedColleague.slug === WEEKLY_SUMMARY_SLUG && <WeeklySummary />}
             </div>
+          ) : slug ? (
+            <Card className="p-12 text-center" data-testid="card-colleague-not-found">
+              <Users className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
+              <h4 className="text-xl font-semibold text-foreground">No 1:1 found for “{slug}”</h4>
+              <p className="text-muted-foreground mt-2">
+                Pick someone from the list, or add them in Settings.
+              </p>
+            </Card>
           ) : (
             <Card className="p-12 text-center">
               <Users className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />

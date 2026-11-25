@@ -41,6 +41,18 @@ function parseOptionalIdParam(
   return parseIdParam(req, res, name, "query");
 }
 
+/** Parses an optional ISO date query param. Sends a 400 and returns null when present but invalid. */
+function parseOptionalDate(req: Request, res: Response, name: string): Date | undefined | null {
+  const raw = req.query[name];
+  if (raw === undefined) return undefined;
+  const date = typeof raw === "string" ? new Date(raw) : new Date(NaN);
+  if (Number.isNaN(date.getTime())) {
+    res.status(400).json({ message: `Invalid ${name}` });
+    return null;
+  }
+  return date;
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -60,7 +72,11 @@ export async function registerRoutes(
     const type = req.query.type as string | undefined;
     const category = req.query.category as string | undefined;
     const status = req.query.status as 'pending' | 'completed' | undefined;
-    const todos = await storage.getTodos({ type, category, status });
+    const completedFrom = parseOptionalDate(req, res, 'completedFrom');
+    if (completedFrom === null) return;
+    const completedTo = parseOptionalDate(req, res, 'completedTo');
+    if (completedTo === null) return;
+    const todos = await storage.getTodos({ type, category, status, completedFrom, completedTo });
     res.json(todos);
   });
 
@@ -348,6 +364,7 @@ export async function registerRoutes(
 
   // Seed data if empty
   await seedDatabase();
+  await storage.backfillColleagueSlugs();
 
   return httpServer;
 }

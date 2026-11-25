@@ -127,3 +127,30 @@ export function useTasksNeedingReview() {
     data: tasksNeedingReview,
   };
 }
+
+/**
+ * Completed todos whose completedAt falls in [from, to). The key starts with the
+ * todos list path, so every todo mutation that refreshes lists refreshes this too.
+ */
+export function useCompletedTodos(range: { from: Date; to: Date; type?: string }) {
+  const params = {
+    completedFrom: range.from.toISOString(),
+    completedTo: range.to.toISOString(),
+    type: range.type,
+  };
+
+  return useQuery({
+    queryKey: [api.todos.list.path, "completed-range", params],
+    queryFn: async () => {
+      const url = new URL(api.todos.list.path, window.location.origin);
+      url.searchParams.append("status", "completed");
+      url.searchParams.append("completedFrom", params.completedFrom);
+      url.searchParams.append("completedTo", params.completedTo);
+      if (params.type) url.searchParams.append("type", params.type);
+
+      const res = await fetch(url.toString(), { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch completed todos");
+      return api.todos.list.responses[200].parse(await res.json());
+    },
+  });
+}

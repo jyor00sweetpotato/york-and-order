@@ -1,6 +1,8 @@
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
-import { rm, readFile } from "fs/promises";
+import { rm, readFile, rename } from "fs/promises";
+import { existsSync } from "fs";
+import path from "path";
 
 // server deps to bundle to reduce openat(2) syscalls
 // which helps cold start times
@@ -32,11 +34,19 @@ const allowlist = [
   "zod-validation-error",
 ];
 
+// Build into a staging directory and swap it in only once everything succeeds,
+// so a failed or killed build never leaves the running server without dist/.
+const OUT_DIR = "dist";
+const STAGING_DIR = "dist.next";
+const PREVIOUS_DIR = "dist.prev";
+
 async function buildAll() {
-  await rm("dist", { recursive: true, force: true });
+  await rm(STAGING_DIR, { recursive: true, force: true });
 
   console.log("building client...");
-  await viteBuild();
+  await viteBuild({
+    build: { outDir: path.resolve(STAGING_DIR, "public"), emptyOutDir: true },
+  });
 
   console.log("building server...");
   const pkg = JSON.parse(await readFile("package.json", "utf-8"));
@@ -51,7 +61,7 @@ async function buildAll() {
     platform: "node",
     bundle: true,
     format: "cjs",
-    outfile: "dist/index.cjs",
+    outfile: `${STAGING_DIR}/index.cjs`,
     define: {
       "process.env.NODE_ENV": '"production"',
     },
@@ -61,7 +71,15 @@ async function buildAll() {
   });
 }
 
-buildAll().catch((err) => {
+async function swapIntoPlace() {
+  await rm(PREVIOUS_DIR, { recursive: true, force: true });
+  if (existsSync(OUT_DIR)) await rename(OUT_DIR, PREVIOUS_DIR);
+  await rename(STAGING_DIR, OUT_DIR);
+  await rm(PREVIOUS_DIR, { recursive: true, force: true });
+  console.log(`build swapped into ${OUT_DIR}/`);
+}
+
+buildAll().then(swapIntoPlace).catch((err) => {
   console.error(err);
   process.exit(1);
 });
