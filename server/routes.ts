@@ -41,6 +41,18 @@ function parseOptionalIdParam(
   return parseIdParam(req, res, name, "query");
 }
 
+/** Parses an optional ISO date query param. Sends a 400 and returns null when present but invalid. */
+function parseOptionalDate(req: Request, res: Response, name: string): Date | undefined | null {
+  const raw = req.query[name];
+  if (raw === undefined) return undefined;
+  const date = typeof raw === "string" ? new Date(raw) : new Date(NaN);
+  if (Number.isNaN(date.getTime())) {
+    res.status(400).json({ message: `Invalid ${name}` });
+    return null;
+  }
+  return date;
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -60,7 +72,11 @@ export async function registerRoutes(
     const type = req.query.type as string | undefined;
     const category = req.query.category as string | undefined;
     const status = req.query.status as 'pending' | 'completed' | undefined;
-    const todos = await storage.getTodos({ type, category, status });
+    const completedFrom = parseOptionalDate(req, res, 'completedFrom');
+    if (completedFrom === null) return;
+    const completedTo = parseOptionalDate(req, res, 'completedTo');
+    if (completedTo === null) return;
+    const todos = await storage.getTodos({ type, category, status, completedFrom, completedTo });
     res.json(todos);
   });
 
@@ -348,6 +364,7 @@ export async function registerRoutes(
 
   // Seed data if empty
   await seedDatabase();
+  await storage.backfillColleagueSlugs();
 
   return httpServer;
 }
@@ -373,7 +390,6 @@ async function seedDatabase() {
 
     // Todo types
     const types = [
-      { group: 'todo_type', value: 'personal', label: 'Personal', color: 'purple' },
       { group: 'todo_type', value: 'professional', label: 'Professional', color: 'blue' },
     ];
     for (const type of types) {
@@ -402,9 +418,9 @@ async function seedDatabase() {
       deadline: new Date(Date.now() + 86400000 * 2)
     });
     await storage.createTodo({
-      title: "Buy groceries",
-      description: "Milk, eggs, bread, and coffee.",
-      type: "personal",
+      title: "Prepare weekly status update",
+      description: "Wins, risks, and asks for the week.",
+      type: "professional",
       category: "ASAP",
       isCompleted: false,
       deadline: new Date(Date.now() + 86400000)
@@ -417,16 +433,16 @@ async function seedDatabase() {
       isCompleted: true,
     });
     await storage.createTodo({
-      title: "Gym session",
-      description: "Leg day.",
-      type: "personal",
+      title: "Book Q1 planning session",
+      description: "Find a two-hour slot with the leadership team.",
+      type: "professional",
       category: "Today",
       isCompleted: true,
     });
     await storage.createTodo({
-      title: "Learn a new programming language",
-      description: "Maybe Rust or Go?",
-      type: "personal",
+      title: "Draft team training plan",
+      description: "Topics and owners for next quarter.",
+      type: "professional",
       category: "Parking Lot",
       isCompleted: false,
     });

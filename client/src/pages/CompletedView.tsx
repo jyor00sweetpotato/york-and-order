@@ -10,7 +10,7 @@ export default function CompletedView() {
     <div className="p-6 md:p-10 max-w-5xl mx-auto space-y-8">
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-green-100 text-green-700 rounded-xl">
+          <div className="p-2 bg-walden-grey-100 text-walden-ink rounded-xl">
             <CheckSquare className="w-6 h-6" />
           </div>
           <h2 className="text-3xl font-display font-bold text-foreground">

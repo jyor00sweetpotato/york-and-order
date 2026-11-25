@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, boolean, doublePrecision } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -6,16 +6,21 @@ import { z } from "zod";
 // TODOS
 // =============================================================================
 
+export const STRATEGIC_IMPACTS = ["high", "medium", "low"] as const;
+export type StrategicImpact = typeof STRATEGIC_IMPACTS[number];
+
 export const todos = pgTable("todos", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description"),
   category: text("category").notNull().default("Today"),
-  type: text("type").notNull().default("personal"),
+  type: text("type").notNull().default("professional"), // personal tasks were removed; only "professional" remains
   deadline: timestamp("deadline"),
   isCompleted: boolean("is_completed").default(false).notNull(),
   completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  strategicImpact: text("strategic_impact"), // 'high' | 'medium' | 'low' | null
+  estimatedHours: doublePrecision("estimated_hours"),
 });
 
 export const insertTodoSchema = createInsertSchema(todos, {
@@ -23,6 +28,13 @@ export const insertTodoSchema = createInsertSchema(todos, {
   deadline: z.union([z.string(), z.date()]).optional().transform(val => 
     val ? (typeof val === 'string' ? new Date(val) : val) : undefined
   ),
+  type: z.literal("professional").optional(),
+  strategicImpact: z.enum(STRATEGIC_IMPACTS).nullable().optional(),
+  estimatedHours: z.number()
+    .positive("Estimated hours must be greater than 0")
+    .max(999, "Estimated hours must be 999 or less")
+    .nullable()
+    .optional(),
 }).omit({
   id: true,
   createdAt: true,
@@ -74,12 +86,15 @@ export type TodoStats = {
 export const colleagues = pgTable("colleagues", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
+  // URL segment for /one-on-ones/:slug. Set once on create so links survive renames.
+  slug: text("slug").unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const insertColleagueSchema = createInsertSchema(colleagues).omit({
   id: true,
-  createdAt: true
+  createdAt: true,
+  slug: true
 });
 
 export type Colleague = typeof colleagues.$inferSelect;

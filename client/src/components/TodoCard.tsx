@@ -5,19 +5,20 @@ import { useUpdateTodo, useDeleteTodo, useTodos } from "@/hooks/use-todos";
 import { useTaskRelationships, useTaskDiscussionLinks } from "@/hooks/use-relationships";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Trash2, Calendar, Clock, Briefcase, User, Link2, ArrowRight, ArrowLeft, MessageSquare, RefreshCw } from "lucide-react";
+import { Trash2, Calendar, Clock, Link2, ArrowRight, ArrowLeft, MessageSquare, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { TaskDetailDialog } from "./TaskDetailDialog";
+import { impactLabel, formatHours } from "@/lib/task-sizing";
 
 const categoryColors: Record<string, { bg: string; text: string }> = {
-  "ASAP": { bg: "bg-red-100", text: "text-red-700" },
-  "Today": { bg: "bg-orange-100", text: "text-orange-700" },
-  "This Week": { bg: "bg-yellow-100", text: "text-yellow-700" },
-  "Next Week": { bg: "bg-blue-100", text: "text-blue-700" },
-  "Eventually": { bg: "bg-purple-100", text: "text-purple-700" },
-  "Parking Lot": { bg: "bg-gray-100", text: "text-gray-700" },
+  "ASAP": { bg: "bg-walden-rust-wash", text: "text-walden-rust" },
+  "Today": { bg: "bg-walden-sun", text: "text-walden-ink" },
+  "This Week": { bg: "bg-walden-sun-wash", text: "text-walden-ink" },
+  "Next Week": { bg: "bg-walden-line", text: "text-walden-ink" },
+  "Eventually": { bg: "bg-walden-grey-100", text: "text-walden-grey-700" },
+  "Parking Lot": { bg: "bg-card ring-1 ring-inset ring-walden-line", text: "text-walden-grey-700" },
 };
 
 interface TodoCardProps {
@@ -40,7 +41,6 @@ export function TodoCard({ todo, needsReview = false }: TodoCardProps) {
     });
   };
 
-  const isProfessional = todo.type === 'professional';
   const catColor = categoryColors[todo.category] || categoryColors["Today"];
 
   const getRelatedTaskName = (taskId: number) => {
@@ -114,12 +114,12 @@ export function TodoCard({ todo, needsReview = false }: TodoCardProps) {
               {todo.title}
             </h3>
             {todo.isCompleted && (
-              <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 hover:bg-green-100">
+              <Badge variant="secondary" className="text-xs bg-walden-grey-100 text-walden-ink hover:bg-walden-grey-100">
                 Done
               </Badge>
             )}
             {needsReview && (
-              <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-700 hover:bg-amber-100 flex items-center gap-1">
+              <Badge variant="secondary" className="text-xs bg-walden-sun-wash text-walden-ink hover:bg-walden-sun-wash flex items-center gap-1">
                 <RefreshCw className="w-3 h-3" />
                 Needs Review
               </Badge>
@@ -143,19 +143,24 @@ export function TodoCard({ todo, needsReview = false }: TodoCardProps) {
               {todo.category}
             </Badge>
 
-            <Badge variant="outline" className={cn(
-              "rounded-lg px-2 py-1 text-xs font-medium border-0",
-              isProfessional ? "bg-blue-50 text-blue-700" : "bg-purple-50 text-purple-700"
-            )}>
-              {isProfessional ? <Briefcase className="w-3 h-3 mr-1.5" /> : <User className="w-3 h-3 mr-1.5" />}
-              {todo.type === 'personal' ? 'Personal' : 'Professional'}
-            </Badge>
+
+            {impactLabel(todo.strategicImpact) && (
+              <Badge variant="outline" className="rounded-lg px-2 py-1 text-xs font-medium border-walden-ink text-walden-ink" data-testid={`badge-impact-${todo.id}`}>
+                {impactLabel(todo.strategicImpact)} impact
+              </Badge>
+            )}
+
+            {todo.estimatedHours != null && (
+              <span className="text-xs font-medium text-walden-ink px-1" data-testid={`text-hours-${todo.id}`}>
+                Est. {formatHours(todo.estimatedHours)}
+              </span>
+            )}
 
             {todo.deadline && (
               <div className={cn(
                 "flex items-center text-xs px-2 py-1 rounded-lg",
                 new Date(todo.deadline) < new Date() && !todo.isCompleted
-                  ? "bg-red-50 text-red-600 font-medium" 
+                  ? "bg-walden-rust-wash text-walden-rust font-medium" 
                   : "text-muted-foreground bg-secondary/50"
               )}>
                 <Calendar className="w-3 h-3 mr-1.5" />
@@ -196,7 +201,7 @@ export function TodoCard({ todo, needsReview = false }: TodoCardProps) {
           variant="ghost"
           size="icon"
           data-testid={`button-delete-${todo.id}`}
-          className="absolute top-4 right-4 text-muted-foreground/40 hover:text-red-500 hover:bg-red-50 rounded-xl opacity-0 group-hover:opacity-100 transition-all"
+          className="absolute top-4 right-4 text-muted-foreground/40 hover:text-walden-rust hover:bg-walden-rust-wash rounded-xl opacity-0 group-hover:opacity-100 transition-all"
           onClick={() => deleteTodo.mutate(todo.id)}
         >
           <Trash2 className="w-4 h-4" />

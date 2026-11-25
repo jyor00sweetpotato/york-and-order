@@ -26,6 +26,9 @@ export const api = {
         status: z.enum(['pending', 'completed']).optional(),
         type: z.string().optional(),
         category: z.string().optional(),
+        // ISO timestamps; filter on completedAt in [completedFrom, completedTo)
+        completedFrom: z.string().optional(),
+        completedTo: z.string().optional(),
       }).optional(),
       responses: {
         200: z.array(z.custom<typeof todos.$inferSelect>()),

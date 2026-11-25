@@ -12,13 +12,13 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 const colorOptions = [
-  { value: "red", label: "Red", class: "bg-red-100 text-red-700" },
-  { value: "orange", label: "Orange", class: "bg-orange-100 text-orange-700" },
-  { value: "yellow", label: "Yellow", class: "bg-yellow-100 text-yellow-700" },
-  { value: "green", label: "Green", class: "bg-green-100 text-green-700" },
-  { value: "blue", label: "Blue", class: "bg-blue-100 text-blue-700" },
-  { value: "purple", label: "Purple", class: "bg-purple-100 text-purple-700" },
-  { value: "gray", label: "Gray", class: "bg-gray-100 text-gray-700" },
+  { value: "red", label: "Red", class: "bg-walden-rust-wash text-walden-rust" },
+  { value: "orange", label: "Orange", class: "bg-walden-sun text-walden-ink" },
+  { value: "yellow", label: "Yellow", class: "bg-walden-sun-wash text-walden-ink" },
+  { value: "green", label: "Green", class: "bg-walden-grey-100 text-walden-ink" },
+  { value: "blue", label: "Blue", class: "bg-walden-line text-walden-ink" },
+  { value: "purple", label: "Purple", class: "bg-walden-grey-100 text-walden-grey-700" },
+  { value: "gray", label: "Gray", class: "bg-walden-grey-100 text-walden-ink" },
 ];
 
 function SettingsList({ group, title, description, icon: Icon }: {
@@ -63,7 +63,7 @@ function SettingsList({ group, title, description, icon: Icon }: {
 
   const getColorClass = (color: string | null) => {
     const found = colorOptions.find(c => c.value === color);
-    return found?.class || "bg-gray-100 text-gray-700";
+    return found?.class || "bg-walden-grey-100 text-walden-ink";
   };
 
   return (
@@ -181,7 +181,7 @@ function ColleaguesList() {
     <Card>
       <CardHeader>
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-indigo-100 text-indigo-600">
+          <div className="p-2 rounded-xl bg-walden-line text-walden-ink">
             <Users className="w-5 h-5" />
           </div>
           <div>
@@ -202,7 +202,7 @@ function ColleaguesList() {
                 <Badge 
                   key={colleague.id} 
                   variant="outline"
-                  className="rounded-lg px-3 py-1.5 text-sm border-0 bg-indigo-50 text-indigo-700 group"
+                  className="rounded-lg px-3 py-1.5 text-sm border-0 bg-walden-grey-100 text-walden-ink group"
                 >
                   {colleague.name}
                   <button
@@ -249,7 +249,7 @@ export default function SettingsView() {
   return (
     <div className="p-6 md:p-10 max-w-4xl mx-auto space-y-8">
       <header className="flex items-start gap-4">
-        <div className="p-3 rounded-2xl bg-gray-100 text-gray-600">
+        <div className="p-3 rounded-2xl bg-walden-grey-100 text-walden-grey-700">
           <Settings className="w-8 h-8" />
         </div>
         <div>
@@ -277,12 +277,6 @@ export default function SettingsView() {
             group="todo_category"
             title="Task Categories"
             description="Priority levels for organizing your tasks"
-            icon={Tag}
-          />
-          <SettingsList 
-            group="todo_type"
-            title="Task Types"
-            description="Personal or professional task classification"
             icon={Tag}
           />
         </TabsContent>
