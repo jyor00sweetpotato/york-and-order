@@ -70,7 +70,7 @@ export function Sidebar({ isMobile = false }: SidebarProps) {
         <h1 className="text-2xl font-display text-foreground">
           Joe's List
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">Life, organized.</p>
+        <p className="text-sm text-muted-foreground mt-1">Walden to-do list management</p>
       </div>
 
       <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
