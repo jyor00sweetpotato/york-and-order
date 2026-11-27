@@ -116,6 +116,7 @@ export const discussionItems = pgTable("discussion_items", {
 });
 
 export const insertDiscussionItemSchema = createInsertSchema(discussionItems, {
+  description: z.string().trim().min(1, "Topic can't be empty"),
   dueDate: z.union([z.string(), z.date()]).optional().nullable().transform(val => 
     val ? (typeof val === 'string' ? new Date(val) : val) : null
   ),

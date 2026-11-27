@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Users, Plus, MessageSquare, Archive, Trash2, Edit2, Loader2, Calendar, Clock, X } from "lucide-react";
+import { Users, Plus, MessageSquare, Archive, Trash2, Edit2, Pencil, Loader2, Calendar, Clock, X, ChevronDown, ChevronUp } from "lucide-react";
 import { format, isPast, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -35,12 +35,26 @@ function DiscussionItemCard({ item, onUpdate, onDelete }: {
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [notes, setNotes] = useState(item.notes || "");
+  const [isEditingTopic, setIsEditingTopic] = useState(false);
+  const [topicDraft, setTopicDraft] = useState(item.description);
   const [dueDateOpen, setDueDateOpen] = useState(false);
   const { data: statuses } = useDiscussionStatuses();
   const statusColor = statusColors[item.status] || statusColors["To Discuss"];
 
   const handleStatusChange = (newStatus: string) => {
     onUpdate(item.id, { status: newStatus });
+  };
+
+  const startEditingTopic = () => {
+    setTopicDraft(item.description);
+    setIsEditingTopic(true);
+  };
+
+  const handleSaveTopic = () => {
+    const description = topicDraft.trim();
+    if (!description) return;
+    if (description !== item.description) onUpdate(item.id, { description });
+    setIsEditingTopic(false);
   };
 
   const handleSaveNotes = () => {
@@ -67,7 +81,28 @@ function DiscussionItemCard({ item, onUpdate, onDelete }: {
       <Card data-testid={`card-discussion-${item.id}`} className={cn("p-4 hover:shadow-lg transition-all", isDueDateOverdue && "border-walden-rust/40 bg-walden-rust-wash/30")}>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-foreground mb-2">{item.description}</p>
+            {isEditingTopic ? (
+              <div className="space-y-2 mb-3">
+                <Textarea
+                  autoFocus
+                  aria-label="Topic"
+                  data-testid={`input-edit-topic-${item.id}`}
+                  value={topicDraft}
+                  onChange={(e) => setTopicDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSaveTopic(); }
+                    if (e.key === "Escape") { e.preventDefault(); setIsEditingTopic(false); }
+                  }}
+                  className="min-h-[60px] font-medium"
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleSaveTopic} disabled={!topicDraft.trim()} data-testid={`button-save-topic-${item.id}`}>Save</Button>
+                  <Button size="sm" variant="ghost" onClick={() => setIsEditingTopic(false)}>Cancel</Button>
+                </div>
+              </div>
+            ) : (
+              <p className="font-medium text-foreground mb-2 whitespace-pre-line break-words" data-testid={`text-topic-${item.id}`}>{item.description}</p>
+            )}
             
             <div className="flex flex-wrap items-center gap-2 mb-3">
               <Select value={item.status} onValueChange={handleStatusChange}>
@@ -155,7 +190,18 @@ function DiscussionItemCard({ item, onUpdate, onDelete }: {
               <div>
                 {item.notes ? (
                   <div className="bg-secondary/30 rounded-lg p-3 text-sm text-muted-foreground">
-                    <p className="text-xs font-medium text-foreground mb-1">Notes:</p>
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <p className="text-xs font-medium text-foreground">Notes:</p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+                        onClick={() => setIsEditing(true)}
+                      >
+                        <Edit2 className="w-3 h-3 mr-1" />
+                        Edit notes
+                      </Button>
+                    </div>
                     {item.notes}
                   </div>
                 ) : (
@@ -174,9 +220,17 @@ function DiscussionItemCard({ item, onUpdate, onDelete }: {
           </div>
 
           <div className="flex flex-col gap-1">
-            {!isEditing && item.notes && (
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsEditing(true)}>
-                <Edit2 className="w-4 h-4" />
+            {!isEditingTopic && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                aria-label="Edit topic"
+                title="Edit topic"
+                data-testid={`button-edit-topic-${item.id}`}
+                onClick={startEditingTopic}
+              >
+                <Pencil className="w-4 h-4" />
               </Button>
             )}
             <Button 
@@ -192,6 +246,54 @@ function DiscussionItemCard({ item, onUpdate, onDelete }: {
         </div>
       </Card>
     </motion.div>
+  );
+}
+
+// On Charley's page, only the first topics show until the tray is opened.
+const COLLAPSED_TOPIC_COUNT = 2;
+
+function TopicList({ items, collapsible, onUpdate, onDelete }: {
+  items: DiscussionItem[];
+  collapsible: boolean;
+  onUpdate: (id: number, updates: Partial<DiscussionItem>) => void;
+  onDelete: (id: number) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const canCollapse = collapsible && items.length > COLLAPSED_TOPIC_COUNT;
+  const shown = canCollapse ? items.slice(0, COLLAPSED_TOPIC_COUNT) : items;
+  const rest = canCollapse ? items.slice(COLLAPSED_TOPIC_COUNT) : [];
+
+  const card = (item: DiscussionItem) => (
+    <DiscussionItemCard key={item.id} item={item} onUpdate={onUpdate} onDelete={onDelete} />
+  );
+
+  return (
+    <>
+      <AnimatePresence>{shown.map(card)}</AnimatePresence>
+      {canCollapse && (
+        <div className="space-y-3">
+          {expanded && (
+            <div id="topics-tray" className="space-y-3 bg-walden-grey-100/70 p-3" data-testid="tray-more-topics">
+              <AnimatePresence>{rest.map(card)}</AnimatePresence>
+            </div>
+          )}
+          <button
+            type="button"
+            aria-expanded={expanded}
+            aria-controls="topics-tray"
+            onClick={() => setExpanded((e) => !e)}
+            className="flex w-full items-center justify-center gap-2 border border-dashed border-border bg-card/60 py-2 text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground hover:bg-walden-sun-wash hover:text-foreground"
+            data-testid="button-toggle-topics"
+          >
+            {expanded ? (
+              <>Show fewer <ChevronUp className="w-4 h-4" /></>
+            ) : (
+              <>Show {rest.length} more topic{rest.length === 1 ? "" : "s"} <ChevronDown className="w-4 h-4" /></>
+            )}
+          </button>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -407,16 +509,12 @@ export default function OneOnOnesView() {
                       </p>
                     </Card>
                   ) : (
-                    <AnimatePresence>
-                      {items?.map((item) => (
-                        <DiscussionItemCard 
-                          key={item.id} 
-                          item={item} 
-                          onUpdate={handleUpdate}
-                          onDelete={handleDelete}
-                        />
-                      ))}
-                    </AnimatePresence>
+                    <TopicList
+                      items={items ?? []}
+                      collapsible={selectedColleague.slug === WEEKLY_SUMMARY_SLUG}
+                      onUpdate={handleUpdate}
+                      onDelete={handleDelete}
+                    />
                   )}
                 </TabsContent>
 
@@ -434,16 +532,12 @@ export default function OneOnOnesView() {
                       </p>
                     </Card>
                   ) : (
-                    <AnimatePresence>
-                      {items?.map((item) => (
-                        <DiscussionItemCard 
-                          key={item.id} 
-                          item={item} 
-                          onUpdate={handleUpdate}
-                          onDelete={handleDelete}
-                        />
-                      ))}
-                    </AnimatePresence>
+                    <TopicList
+                      items={items ?? []}
+                      collapsible={selectedColleague.slug === WEEKLY_SUMMARY_SLUG}
+                      onUpdate={handleUpdate}
+                      onDelete={handleDelete}
+                    />
                   )}
                 </TabsContent>
               </Tabs>
